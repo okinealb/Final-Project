@@ -71,6 +71,7 @@ file_path = "sample.jpg"
 
 # Prompt the user for the input image path and the dimensions of the output
 #   image, then store them
+# NOTE: currently does not prompt user, nor find seams based on dimensions
 output_width = 408
 #output_w = int(input("Output width: "))    # Translate the output width into an int
 
@@ -81,8 +82,8 @@ pixel_map = image.load()      # Extract the pixel map from input
 cols, rows = image.size
 # Initialize arrays to store energy, table, and seam information into
 seam = np.zeros(rows, dtype=int)
-energy_cst = np.zeros((rows, cols), dtype=int)
 energy_tbl = np.zeros((rows, cols), dtype=int)
+energy_cst = np.zeros((rows, cols), dtype=int)
 
 # === Construct Energy Costs and Tables =======================================
 # Iterate through each pixel in the image, computing the energy of the pixel
@@ -97,13 +98,18 @@ for i in range(200):
   for row in reversed(range(rows)):
     if (row == rows-1):
       # Find the current minimum vertical seam in the picture
+      # NOTE: np.where is made for 2d arrays, (but might find the wrong pixel
+      #   column if we use the entire array) so getting the column index is a 
+      #   little weird and requires indexing into the result
       seam[row] = np.where(energy_cst[rows-1] == min(energy_cst[rows-1]))[0][0]
     else:
       # Follow the path of the minimum vertical seam, from bottom up
       seam[row] = find_path(energy_cst, row, seam[row+1])
     # Remove the pixel (by moving all pixels behind it forward one place)
     color_red(pixel_map, seam[row], row)
-  image.save(f"Image{i}.jpg")
+  #image.save(f"Image{i}.jpg") #saves image with seams colored, testing only
+  # Go through and remove the pixels along the seam highlighed above
+  # NOTE: when done testing, we do not need to color red before removing the seam
   for row in reversed(range(rows)):
     remove_pixel(pixel_map, energy_cst, seam[row], row)
   #image.save(f"Image{i}.jpg")
@@ -111,8 +117,11 @@ for i in range(200):
 
 # === Termination =============================================================
 # Save and output the energies, smallest weight seam, and final image
-np.transpose(energy_tbl).tofile("energy.csv", sep = ',') # Write pixel energies
-np.transpose(seam).tofile("seam1.csv", sep = ',') # Write the smallest seam
+# NOTE: Im still not certain if the output energy table should be row by row or column by column
+# NOTE: also, energy_tbl changes (in a bad way) throughout the program, may be better to do this earlier?
+(energy_tbl).tofile("energy.csv", sep = ',') # Write pixel energies
+(seam).tofile("seam1.csv", sep = ',') # Write the smallest seam
 image.save("FinalImage.jpg") # Save the output image, with the seams removed
 
-print(seam)
+# NOTE: seam is updated to the final seam found, but should be the first seam
+#print(seam) # print the seam, testing only

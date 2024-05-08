@@ -1,0 +1,80 @@
+\documentclass{homework}
+
+\title{Problem Set 8}
+\author{Albert-Kenneth Okine}
+
+% ========== Importing packages
+\usepackage[linesnumbered,ruled]{algorithm2e}   % for algorithm formatting
+\usepackage{algorithm2e}
+\usepackage{setspace}
+\setstretch{1.2}
+\RestyleAlgo{ruled}
+\usepackage{setspace}
+\setstretch{1.2}
+\usepackage{comment}                            % for algorithm comments
+\usepackage{amsmath}                            % math related tools
+\usepackage{lscape}
+\usepackage{sectsty}
+% ========== Importing Packages
+
+\sectionfont{\fontsize{12}{12}\selectfont}
+\subsectionfont{\fontsize{12}{12}\selectfont}
+\counterwithin*{equation}{section}
+\counterwithin*{equation}{subsection}
+
+\begin{document}
+\maketitle
+
+\section*{References}
+  \begin{itemize}
+    \item \textit{Introduction to Algorithms}, fourth edition.
+    \item Jonathon Wang for being my partner
+  \end{itemize}
+
+  \pagebreak
+
+\section*{14-8a} % ============================================================
+\textit{Suppose that you are given a color picture consiting of an $m*n$ array
+  $A[1:m, 1:n]$ of pixels, where each pixel specifies a triple of red, green,
+  and blue (RGB) intensities. You want to compress this picture slightly, by
+  removing from each of the $m$ rows, so that the whole picture becomes one
+  pixel narrower. To avoid possible incongruous visual effects, however, the
+  pixels removed in two adjacent rows must lie in either the same column or
+  adjacent columns. In this way, the pixels removed form a "seam" from the
+  top to the bottom row where successive pixels in the seam are adjacent
+  vertically or diagonally. Show that the number of such possible seams grows
+  at least exponentially in $m$, assuming that $n > 1$}.
+  
+  Since we want to assume that the number of such possible seams is at least
+  exponentially in $m$, assuming that $n > 1$, we consider the case where
+  $n = 2$. In this case, there are $n = 2$ columns in the input color picture,
+  meaning that any choice of pixel as the seam in the row will satisfy the same
+  or adjacent column rule. For each pixel in row $i$, we can make one of two
+  choices, removing pixel $A[i,1]$ or pixel $A[i,2]$. Thus, there are $2$
+  choices per row, with $n = 2$ rows, meaning there are $2 * 2 \cdots 2 = 2^m$
+  unqiue combinations per $m$ rows and $2^m$.
+
+  Any other choice of $n > 1$ is an extension of this example, and we have
+  proven this property for $n = 2$, so we have proven that the number of
+  possible seams grows exponentially in $m$, specifically $2^m$.
+
+\section*{Designing Algorithm} % ==============================================
+\textit{Given the following energy function for a pixel, design an algorithm to
+  compute the minumum value vertical seam. i.e. a set of pixels, one per row,
+  where pixels in adjacent rows have to be within one column of each other with
+  minimum total energy. Give the algorithm in psuedocode, give me a proof of
+  correctness, justify the runtime of the algorithm.}
+
+    \begin{equation}
+      E(x,y) =
+      \left\{
+        \begin{array}{lr}
+          1000, & \text{(x,y) is on the border of the image}\\
+          \sqrt[]{\sum_{d \in \Delta} d^2}, & \text{otherwise}
+        \end{array}
+      \right\}
+    \end{equation}
+
+  
+
+\end{document}

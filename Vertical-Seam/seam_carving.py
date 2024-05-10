@@ -6,15 +6,16 @@ from PIL import Image           # Importing Image from the PIL package
 # Calculate the energy of the pixel (x,y) by considering the RGB values of the
 #   pixels immediately above/below and to the left/right.
 def calculate_energy(x, y):
+  print(x, y, len(image2), len(image2[0]))
   # If the pixel is on the border, then the corresponding energy is 1000
   if (x == 0 or y == 0 or x == cols-1 or y == rows-1): return 1000
   # Otherwise, calculate the energy of the pixel (x,y) using the formula
   else:
     # Calculate the horizontal and vertical costs using the energy function
-    h_cost = np.subtract(image.getpixel((x-1, y)), image.getpixel((x+1, y)))
-    v_cost = np.subtract(image.getpixel((x, y-1)), image.getpixel((x, y+1)))
+    h_cost = np.subtract(image2[x-1, y], image2[x+1, y])
+    v_cost = np.subtract(image2[x, y-1], image2[x, y+1])
     # Return the sqrt of the combined, squared horizontal and vertical costs 
-    return (np.sum(np.square(h_cost)) + np.sum(np.square(v_cost))) ** 1/2
+    return ((np.sum(np.square(h_cost)) + np.sum(np.square(v_cost))) ** 1/2)
   
 # Find the minimum cost of the possible pixels above the current pixel at (x,y)
 def min_cost(tbl, x, y):
@@ -76,10 +77,11 @@ output_width = 408
 #output_w = int(input("Output width: "))    # Translate the output width into an int
 
 image = Image.open(file_path) # Import the image from the given filepath
-pixel_map = image.load()      # Extract the pixel map from input
+image2=np.array(image).astype(int)
+#pixel_map = image.load()      # Extract the pixel map from input
 
 # Initialize cols, rows to the size of the image (width, height, respectively)
-cols, rows = image.size
+rows,cols,rgb = image2.shape
 # Initialize arrays to store energy, table, and seam information into
 seam = np.zeros(rows, dtype=int)
 energy_tbl = np.zeros((rows, cols), dtype=int)
@@ -90,10 +92,18 @@ energy_cst = np.zeros((rows, cols), dtype=int)
 for row in range(rows):
   for col in range(cols):
     # Calculate the energy of the pixel (col,row), then update the energy arrays
-    energy_tbl[row][col] = calculate_energy(col, row)
+    energy_tbl[row][col] = calculate_energy(row, col)
+    print(calculate_energy(col,row))
+    
     energy_cst[row][col] = min_cost(energy_cst, col, row) + energy_tbl[row][col]
     
+energy_output=energy_tbl[1:rows-1,1:cols-1]
+#print(energy_output)
+np.savetxt("energy.csv", energy_output, delimiter=",")
+#(energy_tbl).tocsv("energy.csv") # Write pixel energies
+
 # === Carve Seams =============================================================
+# do better update image instead of moving pixel
 for i in range(200):
   for row in reversed(range(rows)):
     if (row == rows-1):
@@ -106,22 +116,17 @@ for i in range(200):
       # Follow the path of the minimum vertical seam, from bottom up
       seam[row] = find_path(energy_cst, row, seam[row+1])
     # Remove the pixel (by moving all pixels behind it forward one place)
-    color_red(pixel_map, seam[row], row)
-  #image.save(f"Image{i}.jpg") #saves image with seams colored, testing only
-  # Go through and remove the pixels along the seam highlighed above
-  # NOTE: when done testing, we do not need to color red before removing the seam
+    color_red(pixel_map, seam[row].item(), row)
+  #image.save(f"Image{i}.jpg")
   for row in reversed(range(rows)):
-    remove_pixel(pixel_map, energy_cst, seam[row], row)
+    remove_pixel(pixel_map, energy_cst, seam[row].item(), row)
   #image.save(f"Image{i}.jpg")
 
 
 # === Termination =============================================================
 # Save and output the energies, smallest weight seam, and final image
-# NOTE: Im still not certain if the output energy table should be row by row or column by column
-# NOTE: also, energy_tbl changes (in a bad way) throughout the program, may be better to do this earlier?
-(energy_tbl).tofile("energy.csv", sep = ',') # Write pixel energies
-(seam).tofile("seam1.csv", sep = ',') # Write the smallest seam
+np.savetxt("seam1.csv", seam, delimiter=",")
+#(seam).to_csv("seam1.csv") # Write the smallest seam
 image.save("FinalImage.jpg") # Save the output image, with the seams removed
 
-# NOTE: seam is updated to the final seam found, but should be the first seam
-#print(seam) # print the seam, testing only
+#print(seam)
